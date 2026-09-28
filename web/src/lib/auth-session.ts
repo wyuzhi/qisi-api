@@ -20,6 +20,7 @@ import type { QueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { t } from 'i18next'
 
+import { APP_BASE_PATH } from '@/lib/app-path'
 import { publishAuthSessionEvent } from '@/lib/auth-session-sync'
 import { hasSessionHint } from '@/lib/session-hint'
 import {
@@ -68,7 +69,7 @@ export class AuthRotationError extends Error {
 }
 
 const authClient = axios.create({
-  baseURL: '',
+  baseURL: APP_BASE_PATH,
   withCredentials: true,
   headers: {
     // no-store forbids storage; no-cache also revalidates any older cached response.

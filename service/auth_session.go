@@ -316,7 +316,7 @@ func WriteRefreshCookie(c *gin.Context, rawToken string) {
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     RefreshCookieName,
 		Value:    rawToken,
-		Path:     "/api/user/auth",
+		Path:     common.PublicBasePath + "/api/user/auth",
 		MaxAge:   maxAge,
 		Expires:  expiresAt,
 		HttpOnly: true,
@@ -330,7 +330,7 @@ func ClearRefreshCookie(c *gin.Context) {
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     RefreshCookieName,
 		Value:    "",
-		Path:     "/api/user/auth",
+		Path:     common.PublicBasePath + "/api/user/auth",
 		MaxAge:   -1,
 		Expires:  time.Unix(1, 0),
 		HttpOnly: true,
@@ -361,7 +361,7 @@ func writeSessionHintCookie(c *gin.Context, maxAge int, expiresAt time.Time) {
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     SessionHintCookieName,
 		Value:    SessionHintCookieValue,
-		Path:     "/",
+		Path:     common.PublicBasePath + "/",
 		MaxAge:   maxAge,
 		Expires:  expiresAt,
 		HttpOnly: false,
@@ -374,7 +374,7 @@ func clearSessionHintCookie(c *gin.Context) {
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     SessionHintCookieName,
 		Value:    "",
-		Path:     "/",
+		Path:     common.PublicBasePath + "/",
 		MaxAge:   -1,
 		Expires:  time.Unix(1, 0),
 		HttpOnly: false,

@@ -52,7 +52,9 @@ import {
   useSystemConfigStore,
 } from '@/stores/system-config-store'
 
+import * as usersApi from '../../api'
 import type { User } from '../../types'
+import { UserQuotaDialog } from '../user-quota-dialog'
 import { useUsersColumns } from '../users-columns'
 import { UsersProvider } from '../users-provider'
 import { UsersTable } from '../users-table'
@@ -434,4 +436,44 @@ it('labels raw quota mode as tokens without introducing a currency symbol', () =
   expect(
     within(screen.getAllByRole('cell')[0]).getByText('200')
   ).toBeInTheDocument()
+})
+
+it('submits a manual top-up once while the request is pending', async () => {
+  let finish!: (
+    value: Awaited<ReturnType<typeof usersApi.adjustUserQuota>>
+  ) => void
+  const adjust = vi.spyOn(usersApi, 'adjustUserQuota').mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve
+      })
+  )
+  const done = vi.fn()
+  render(
+    <I18nextProvider i18n={i18n}>
+      <UserQuotaDialog
+        open
+        onOpenChange={vi.fn()}
+        userId={23}
+        currentQuota={0}
+        onSuccess={done}
+      />
+    </I18nextProvider>
+  )
+  const input = screen.getByRole('spinbutton')
+  await userEvent.type(input, '10')
+  await userEvent.click(
+    screen.getByRole('button', { name: /^Confirm$/ })
+  )
+  await userEvent.type(input, '{Enter}{Enter}')
+  expect(adjust).toHaveBeenCalledTimes(1)
+  expect(adjust.mock.calls[0][0]).toMatchObject({
+    id: 23,
+    action: 'add_quota',
+    mode: 'add',
+  })
+  await act(async () => {
+    finish({ success: true, message: '' })
+  })
+  expect(done).toHaveBeenCalledTimes(1)
 })

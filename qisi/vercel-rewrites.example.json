@@ -1,0 +1,8 @@
+{
+  "redirects": [
+    { "source": "/api-service", "destination": "/api-service/", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/api-service/:path*", "destination": "https://YOUR_BACKEND_HOST/api-service/:path*" }
+  ]
+}

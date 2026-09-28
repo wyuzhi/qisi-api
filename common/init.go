@@ -31,6 +31,9 @@ func printHelp() {
 
 func InitEnv() {
 	flag.Parse()
+	if err := InitPublicBasePath(); err != nil {
+		log.Fatal(err)
+	}
 
 	envVersion := os.Getenv("VERSION")
 	if envVersion != "" {

@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -45,6 +45,7 @@ export function UserQuotaDialog(props: UserQuotaDialogProps) {
   const [mode, setMode] = useState<QuotaAdjustMode>('add')
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
+  const submitting = useRef(false)
 
   const { meta: currencyMeta } = getCurrencyDisplay()
   const currencyLabel = getCurrencyLabel()
@@ -71,9 +72,11 @@ export function UserQuotaDialog(props: UserQuotaDialogProps) {
   }
 
   const handleConfirm = async () => {
+    if (submitting.current) return
     if (!amount && mode !== 'override') return
     if (quotaValue <= 0 && mode !== 'override') return
 
+    submitting.current = true
     setLoading(true)
     try {
       const value =
@@ -96,6 +99,7 @@ export function UserQuotaDialog(props: UserQuotaDialogProps) {
     } catch (e: unknown) {
       handleServerError(e, t('Failed to adjust quota'))
     } finally {
+      submitting.current = false
       setLoading(false)
     }
   }
@@ -115,7 +119,9 @@ export function UserQuotaDialog(props: UserQuotaDialogProps) {
       open={props.open}
       onOpenChange={props.onOpenChange}
       title={t('Adjust Quota')}
-      description={t('Select an operation mode and enter the amount')}
+      description={t(
+        'Manually adjust the user balance. This records a balance adjustment, not an online payment receipt.'
+      )}
       contentHeight='auto'
       bodyClassName='space-y-4'
       footer={

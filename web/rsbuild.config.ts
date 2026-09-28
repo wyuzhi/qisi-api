@@ -15,6 +15,10 @@ export default defineConfig(({ envMode }) => {
     env.rawPublicVars.VITE_REACT_APP_SERVER_URL ||
     'http://localhost:3000'
 
+  const basePath = process.env.QISI_BASE_PATH || ''
+  if (basePath && !/^\/[a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)*$/.test(basePath))
+    { throw new Error('Invalid QISI_BASE_PATH') }
+
   const isProd = envMode === 'production'
   const devProxy = Object.fromEntries(
     (['/api', '/v1', '/mj', '/pg'] as const).map((key) => [
@@ -53,6 +57,7 @@ export default defineConfig(({ envMode }) => {
       },
     },
     source: {
+      define: { __QISI_BASE_PATH__: JSON.stringify(basePath) },
       entry: {
         index: './src/main.tsx',
       },
@@ -72,6 +77,7 @@ export default defineConfig(({ envMode }) => {
       proxy: devProxy,
     },
     output: {
+      assetPrefix: `${basePath}/`,
       // Production optimizations
       minify: isProd,
       target: 'web',

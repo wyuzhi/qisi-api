@@ -1,0 +1,22 @@
+services:
+  qisi-api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        QISI_BASE_PATH: /api-service
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:4319:3000'
+    env_file: .env
+    environment:
+      PORT: '3000'
+      PUBLIC_BASE_PATH: /api-service
+      SQLITE_PATH: /data/qisi.db
+      SESSION_COOKIE_SECURE: 'true'
+      SESSION_COOKIE_TRUSTED_URL: https://cheeser.link
+      TRUSTED_PROXIES: none
+    volumes:
+      - qisi-data:/data
+volumes:
+  qisi-data:

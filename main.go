@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -211,9 +212,19 @@ func main() {
 		port = strconv.Itoa(*common.Port)
 	}
 
+	var handler http.Handler = server
+	if common.PublicBasePath != "" {
+		mux := http.NewServeMux()
+		mux.Handle(common.PublicBasePath+"/", http.StripPrefix(common.PublicBasePath, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Gin middleware and task adapters must see the same application path.
+			r.RequestURI = r.URL.RequestURI()
+			server.ServeHTTP(w, r)
+		})))
+		handler = mux
+	}
 	srv := &http.Server{
-		Addr:    ":" + port,
-		Handler: server,
+		Addr:    net.JoinHostPort(os.Getenv("BIND_ADDRESS"), port),
+		Handler: handler,
 	}
 
 	go func() {

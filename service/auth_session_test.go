@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -428,4 +430,44 @@ func TestUserAuthVersionInvalidatesExistingSession(t *testing.T) {
 	assert.ErrorIs(t, err, ErrLoginSessionRevoked)
 	_, err = CreateLoginSessionAtAuthVersion(user.Id, identity.UserAuthVersion, "2fa", "127.0.0.1", "test-agent")
 	assert.ErrorIs(t, err, ErrLoginSessionRevoked, "a pending 2FA flow must not survive an auth-version change")
+}
+
+func TestQisiPrefixSessionCookies(t *testing.T) {
+	previousPath, previousSecure := common.PublicBasePath, common.SessionCookieSecure
+	t.Cleanup(func() { common.PublicBasePath, common.SessionCookieSecure = previousPath, previousSecure })
+	common.PublicBasePath, common.SessionCookieSecure = "/api-service", true
+	for _, clear := range []bool{false, true} {
+		recorder := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(recorder)
+		ctx.Request = httptest.NewRequest("POST", "https://cheeser.link/api-service/api/user/auth/refresh", nil)
+		if clear {
+			ClearRefreshCookie(ctx)
+		} else {
+			WriteRefreshCookie(ctx, "fixture")
+		}
+		cookies := recorder.Result().Cookies()
+		require.Len(t, cookies, 2)
+		for _, cookie := range cookies {
+			assert.True(t, cookie.Secure)
+			assert.Equal(t, http.SameSiteStrictMode, cookie.SameSite)
+			if cookie.Name == RefreshCookieName {
+				assert.Equal(t, "/api-service/api/user/auth", cookie.Path)
+				assert.True(t, cookie.HttpOnly)
+			} else {
+				assert.Equal(t, "/api-service/", cookie.Path)
+				assert.False(t, cookie.HttpOnly)
+			}
+			if clear {
+				assert.Equal(t, -1, cookie.MaxAge)
+			} else {
+				assert.Positive(t, cookie.MaxAge)
+			}
+		}
+	}
+	for _, path := range []string{"/api-service/", "//api-service", "/../admin", "/api?service"} {
+		t.Setenv("PUBLIC_BASE_PATH", path)
+		require.Error(t, common.InitPublicBasePath())
+	}
+	t.Setenv("PUBLIC_BASE_PATH", "/api-service")
+	require.NoError(t, common.InitPublicBasePath())
 }

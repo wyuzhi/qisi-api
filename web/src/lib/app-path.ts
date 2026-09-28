@@ -16,16 +16,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { appPath } from '@/lib/app-path'
+declare const __QISI_BASE_PATH__: string
 
-// ============================================================================
-// Affiliate Functions
-// ============================================================================
+export const APP_BASE_PATH =
+  typeof __QISI_BASE_PATH__ === 'string' ? __QISI_BASE_PATH__ : ''
 
-/**
- * Generate affiliate registration link
- */
-export function generateAffiliateLink(affCode: string): string {
-  if (typeof window === 'undefined') return ''
-  return `${window.location.origin}${appPath('/sign-up')}?aff=${affCode}`
+export function appPath(path: string): string {
+  if (!path.startsWith('/') || path.startsWith('//'))
+    { throw new Error('Expected an application-relative path') }
+  return `${APP_BASE_PATH}${path}`
 }
