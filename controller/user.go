@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"unicode/utf8"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/i18n"
@@ -237,6 +238,10 @@ func Register(c *gin.Context) {
 	}
 	if err := common.Validate.Struct(&user); err != nil {
 		common.ApiErrorI18n(c, i18n.MsgUserInputInvalid, map[string]any{"Error": err.Error()})
+		return
+	}
+	if utf8.RuneCountInString(user.Password) < common.RegistrationPasswordMinLength {
+		common.ApiErrorI18n(c, i18n.MsgUserRegisterPasswordShort, map[string]any{"Min": common.RegistrationPasswordMinLength})
 		return
 	}
 	if common.EmailVerificationEnabled {

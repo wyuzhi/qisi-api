@@ -9,4 +9,14 @@ docs
 .gocache
 /web/node_modules
 /web/dist
+.local-tests
+.local-*.log
+**/.env
+**/.env.*
+!**/.env.example
+**/__pycache__
+*.db
+*.db-shm
+*.db-wal
+qisi-api-install.log
 !THIRD-PARTY-LICENSES.md

@@ -6800,6 +6800,11 @@
     "Connect your applications and local Agents through the documented task API.": "通过统一的任务接口，将自己的应用和本地 Agent 接入生成服务。",
     "Your canvas stays yours.": "你的画布，仍在你的电脑。",
     "Use qisiTV for local projects. This workspace manages API access and billing.": "qisiTV 负责本地项目，这里负责 API 接入和费用管理。",
-    "Manually adjust the user balance. This records a balance adjustment, not an online payment receipt.": "手动调整用户余额，会记录操作人和金额变化，不代表已收到在线付款。"
+    "Manually adjust the user balance. This records a balance adjustment, not an online payment receipt.": "手动调整用户余额，会记录操作人和金额变化，不代表已收到在线付款。",
+    "Password is shorter than the registration minimum.": "密码长度低于本网站的注册要求。",
+    "Enter password ({{min}}–128 characters)": "输入密码（{{min}}–128 个字符）",
+    "Sign in with your username. Keep your username and password safe; email password recovery is not available yet.": "请使用用户名登录，并保管好用户名和密码；邮箱找回密码功能暂未开通。",
+    "Email password recovery is not available yet. If you cannot sign in, contact the site administrator for help.": "邮箱找回密码功能暂未开通。如无法登录，请联系网站管理员协助处理。",
+    "Back to sign in": "返回登录"
   }
 }

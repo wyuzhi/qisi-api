@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+# Trial configuration only. Initialize the Supabase database privately BEFORE
+# creating this public service. See Render与Supabase部署.md.
+# Select qisi/render.yaml as the Blueprint path; Docker paths use the repo root.
+services:
+  - type: web
+    name: qisi-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: "off"
+    healthCheckPath: /api-service/api/status
+    envVars:
+      # Required: Supabase Session pooler, port 5432, with TLS enabled.
+      # Copy the initialized database DSN; never leave this empty (SQLite fallback).
+      - key: SQL_DSN
+        sync: false
+      # Must match the value used for private initialization. Do not regenerate.
+      - key: SESSION_SECRET
+        sync: false
+      # Render exposes env vars as Docker build args; this is the only build ARG
+      # consumed here. Never add SQL_DSN or SESSION_SECRET as Dockerfile ARGs.
+      - key: QISI_BASE_PATH
+        value: /api-service
+      - key: PUBLIC_BASE_PATH
+        value: /api-service
+      - key: PORT
+        value: "10000"
+      - key: BIND_ADDRESS
+        value: 0.0.0.0
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: SESSION_COOKIE_TRUSTED_URL
+        value: https://cheeser.link
+      # Replace only after verifying the real proxy chain and its IP/CIDRs.
+      - key: TRUSTED_PROXIES
+        value: none
+      - key: REGISTRATION_PASSWORD_MIN_LENGTH
+        value: "15"
+      - key: GENERATE_DEFAULT_TOKEN
+        value: "false"
+      - key: CRITICAL_RATE_LIMIT_ENABLE
+        value: "true"
+      - key: SQL_MAX_IDLE_CONNS
+        value: "2"
+      - key: SQL_MAX_OPEN_CONNS
+        value: "10"
+      - key: SQL_MAX_LIFETIME
+        value: "60"
+previews:
+  generation: "off"

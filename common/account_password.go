@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -21,6 +22,24 @@ const (
 	accountPasswordSaltBytes = 16
 	accountPasswordKeyBytes  = 32
 )
+
+// RegistrationPasswordMinLength applies only to public account creation.
+// Existing accounts retain their login and password-change compatibility.
+var RegistrationPasswordMinLength = MinAccountPasswordLength
+
+func InitRegistrationPasswordSettings() error {
+	RegistrationPasswordMinLength = MinAccountPasswordLength
+	raw := strings.TrimSpace(os.Getenv("REGISTRATION_PASSWORD_MIN_LENGTH"))
+	if raw == "" {
+		return nil
+	}
+	minimum, err := strconv.Atoi(raw)
+	if err != nil || minimum < MinAccountPasswordLength || minimum > MaxAccountPasswordLength {
+		return errors.New("REGISTRATION_PASSWORD_MIN_LENGTH must be an integer between 8 and 128")
+	}
+	RegistrationPasswordMinLength = minimum
+	return nil
+}
 
 var (
 	ErrAccountPasswordLength = errors.New("Password must contain between 8 and 128 characters.")

@@ -6800,6 +6800,11 @@
     "Connect your applications and local Agents through the documented task API.": "Connect your applications and local Agents through the documented task API.",
     "Your canvas stays yours.": "Your canvas stays yours.",
     "Use qisiTV for local projects. This workspace manages API access and billing.": "Use qisiTV for local projects. This workspace manages API access and billing.",
-    "Manually adjust the user balance. This records a balance adjustment, not an online payment receipt.": "Manually adjust the user balance. This records a balance adjustment, not an online payment receipt."
+    "Manually adjust the user balance. This records a balance adjustment, not an online payment receipt.": "Manually adjust the user balance. This records a balance adjustment, not an online payment receipt.",
+    "Password is shorter than the registration minimum.": "Password is shorter than the registration minimum.",
+    "Enter password ({{min}}–128 characters)": "Enter password ({{min}}–128 characters)",
+    "Sign in with your username. Keep your username and password safe; email password recovery is not available yet.": "Sign in with your username. Keep your username and password safe; email password recovery is not available yet.",
+    "Email password recovery is not available yet. If you cannot sign in, contact the site administrator for help.": "Email password recovery is not available yet. If you cannot sign in, contact the site administrator for help.",
+    "Back to sign in": "Back to sign in"
   }
 }

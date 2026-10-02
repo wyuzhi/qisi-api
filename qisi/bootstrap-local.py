@@ -46,7 +46,8 @@ options = {
     'HeaderNavModules': json.dumps({'home': True, 'console': True, 'pricing': {'enabled': True, 'requireAuth': False}, 'rankings': {'enabled': False, 'requireAuth': False}, 'docs': True, 'about': True}), 'Logo': '/api-service/qisi-logo.jpg',
     'ServerAddress': base, 'general_setting.docs_link': base + '/qisi-guide.html',
     'general_setting.quota_display_type': 'CNY', 'RetryTimes': '0',
-    'RegisterEnabled': 'false', 'QuotaForNewUser': '0',
+    'RegisterEnabled': 'true', 'PasswordRegisterEnabled': 'true',
+    'PasswordLoginEnabled': 'true', 'EmailVerificationEnabled': 'false', 'QuotaForNewUser': '0',
     'QuotaForInviter': '0', 'QuotaForInvitee': '0',
     'Notice': 'qisi API 本地准备版本。在线支付待开通，LikeAI 模型需核对成本并配置售价后启用。',
 }

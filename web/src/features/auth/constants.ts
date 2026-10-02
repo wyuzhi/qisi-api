@@ -29,17 +29,24 @@ export const loginFormSchema = z.object({
   password: z.string().min(1, 'Please enter your password'),
 })
 
-export const registerFormSchema = z
-  .object({
-    username: z.string().min(1, 'Please enter your username'),
-    email: z.string().optional(),
-    password: accountPasswordSchema,
-    confirmPassword: z.string().min(1, 'Please confirm your password'),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match.",
-    path: ['confirmPassword'],
-  })
+export function createRegisterFormSchema(minimumPasswordLength = 8) {
+  return z
+    .object({
+      username: z.string().min(1, 'Please enter your username'),
+      email: z.string().optional(),
+      password: accountPasswordSchema.refine(
+        (password) => [...password].length >= minimumPasswordLength,
+        'Password is shorter than the registration minimum.'
+      ),
+      confirmPassword: z.string().min(1, 'Please confirm your password'),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: "Passwords don't match.",
+      path: ['confirmPassword'],
+    })
+}
+
+export const registerFormSchema = createRegisterFormSchema()
 
 export const forgotPasswordFormSchema = z.object({
   email: z.string().email({

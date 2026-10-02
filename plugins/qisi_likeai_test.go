@@ -63,6 +63,43 @@ func TestQisiLikeAITaskContract(t *testing.T) {
 		_, err := plugin.Engine.Call(t.Context(), "parseSubmitResponse", ctx, map[string]any{"body": map[string]any{"code": 500}})
 		require.Error(t, err)
 	})
+	t.Run("qisiTV empty image kwargs are accepted without exposing extra controls", func(t *testing.T) {
+		imageRequest := map[string]any{"api_name": "doubao_seedream_4_5", "prompt": "test", "kwargs": map[string]any{}}
+		usage := call("extractUsage", map[string]any{"requestBody": imageRequest})
+		assert.Equal(t, float64(1), usage["image_count"])
+		imageRequest["kwargs"] = map[string]any{"generate_audio": true}
+		_, err := plugin.Engine.Call(t.Context(), "extractUsage", map[string]any{"requestBody": imageRequest})
+		require.Error(t, err)
+	})
+	t.Run("artifact download is bound to persisted media and has no credentials", func(t *testing.T) {
+		data := map[string]any{"data": map[string]any{"result": map[string]any{"images": []string{"file:///private", "https://cdn.example/a.png"}, "videos": []string{"https://cdn.example/a.mp4"}}}}
+		artifactCtx := map[string]any{"artifactKey": "images.0", "data": data, "apiKey": "fixture-secret", "authHeader": "Bearer fixture-secret", "clientRequest": map[string]any{"method": "GET", "headers": map[string]any{"Range": "bytes=0-99", "Authorization": "Bearer client-secret"}}}
+		descriptor := call("buildContentRequest", artifactCtx)
+		assert.Equal(t, map[string]any{"url": "https://cdn.example/a.png", "method": "GET", "credentialless": true}, descriptor)
+		artifactCtx["artifactKey"] = "videos.0"
+		artifactCtx["clientRequest"] = map[string]any{"method": "HEAD"}
+		assert.Equal(t, "HEAD", call("buildContentRequest", artifactCtx)["method"])
+		for _, key := range []string{"images.1", "images.00", "images.-1", "images.0/../../", "https://other.example/"} {
+			artifactCtx["artifactKey"] = key
+			_, err := plugin.Engine.Call(t.Context(), "buildContentRequest", artifactCtx)
+			require.Error(t, err, key)
+		}
+		artifactCtx["artifactKey"] = "images.0"
+		artifactCtx["clientRequest"] = map[string]any{"method": "POST"}
+		_, err := plugin.Engine.Call(t.Context(), "buildContentRequest", artifactCtx)
+		require.Error(t, err)
+		for _, status := range []string{"SUCCESS", "IN_PROGRESS"} {
+			value, err := plugin.Engine.Call(t.Context(), "listArtifacts", map[string]any{"status": status, "data": data})
+			require.NoError(t, err)
+			encoded, err := common.Marshal(value)
+			require.NoError(t, err)
+			if status == "SUCCESS" {
+				assert.JSONEq(t, `[{"key":"images.0","type":"image"},{"key":"videos.0","type":"video"}]`, string(encoded))
+			} else {
+				assert.JSONEq(t, `[]`, string(encoded))
+			}
+		}
+	})
 	t.Run("unknown poll results must not refund or finish tasks", func(t *testing.T) {
 		for _, body := range []map[string]any{{"code": 500}, {"code": 200, "data": map[string]any{"status": "completed"}}, {"code": 200, "data": map[string]any{"status": "future_state"}}} {
 			assert.Equal(t, "UNKNOWN", call("parseTaskResult", ctx, body)["status"])

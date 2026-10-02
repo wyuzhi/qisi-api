@@ -41,7 +41,10 @@ import { Label } from '@/components/ui/label'
 import { register, wechatLoginByCode } from '@/features/auth/api'
 import { LegalConsent } from '@/features/auth/components/legal-consent'
 import { OAuthProviders } from '@/features/auth/components/oauth-providers'
-import { registerFormSchema } from '@/features/auth/constants'
+import {
+  createRegisterFormSchema,
+  type registerFormSchema,
+} from '@/features/auth/constants'
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { useEmailVerification } from '@/features/auth/hooks/use-email-verification'
 import { useTurnstile } from '@/features/auth/hooks/use-turnstile'
@@ -88,8 +91,13 @@ export function SignUpForm({
     validateTurnstile,
   })
 
+  const minimumPasswordLength = status?.registration_password_min_length ?? 8
+  const schema = useMemo(
+    () => createRegisterFormSchema(minimumPasswordLength),
+    [minimumPasswordLength]
+  )
   const form = useForm<z.infer<typeof registerFormSchema>>({
-    resolver: zodResolver(registerFormSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       username: '',
       email: '',
@@ -251,6 +259,14 @@ export function SignUpForm({
         className={cn('grid gap-4', className)}
         {...props}
       >
+        {status?.email_password_reset_enabled === false &&
+          !emailVerificationRequired && (
+            <p className='text-muted-foreground text-sm leading-6'>
+              {t(
+                'Sign in with your username. Keep your username and password safe; email password recovery is not available yet.'
+              )}
+            </p>
+          )}
         {/* Username Field */}
         <FormField
           control={form.control}
@@ -275,7 +291,10 @@ export function SignUpForm({
               <FormLabel>{t('Password')}</FormLabel>
               <FormControl>
                 <PasswordInput
-                  placeholder={t('Enter password (8–128 characters)')}
+                  placeholder={t('Enter password ({{min}}–128 characters)', {
+                    min: minimumPasswordLength,
+                  })}
+                  autoComplete='new-password'
                   {...field}
                 />
               </FormControl>
@@ -292,7 +311,11 @@ export function SignUpForm({
             <FormItem>
               <FormLabel>{t('Confirm password')}</FormLabel>
               <FormControl>
-                <PasswordInput placeholder={t('Confirm password')} {...field} />
+                <PasswordInput
+                  placeholder={t('Confirm password')}
+                  autoComplete='new-password'
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

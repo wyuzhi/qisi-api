@@ -17,7 +17,8 @@ env = os.environ.copy()
 env.update(json.loads(config.read_text()))
 env.update({'BIND_ADDRESS': '127.0.0.1', 'PORT': '4319', 'PUBLIC_BASE_PATH': '/api-service',
             'SQLITE_PATH': str(state / 'qisi.db'), 'TRUSTED_PROXIES': 'none',
-            'SESSION_COOKIE_SECURE': 'false', 'SESSION_COOKIE_TRUSTED_URL': ''})
+            'SESSION_COOKIE_SECURE': 'false', 'SESSION_COOKIE_TRUSTED_URL': '',
+            'REGISTRATION_PASSWORD_MIN_LENGTH': '15', 'GENERATE_DEFAULT_TOKEN': 'false'})
 os.umask(0o077)
 os.chdir(root)
 print('qisi API: http://127.0.0.1:4319/api-service/', flush=True)

@@ -5,7 +5,7 @@ const VIDEO = 'doubao_seedance_2_5';
 const MAX_IMAGE_COUNT = 128;
 const STATUS = { queued: 'QUEUED', pending: 'QUEUED', running: 'IN_PROGRESS', completed: 'SUCCESS', failed: 'FAILURE' };
 export const meta = {
-  apiVersion: 1, key: 'qisi-likeai', name: 'LikeAI · qisi API', version: '1.0.1',
+  apiVersion: 1, key: 'qisi-likeai', name: 'LikeAI · qisi API', version: '1.1.0',
   author: { name: 'qisi' }, icon: 'text:起司',
   description: { en: 'LikeAI image and video generation', zh: 'LikeAI 图片与视频生成' },
   website: 'https://cheeser.link', baseUrl: 'https://task.likeai.pro/task-api',
@@ -65,7 +65,7 @@ function normalize(input) {
   if (out.first_image_url && out.image_urls && out.image_urls.length) throw new Error('Choose first-frame or reference-image mode');
   if (req.kwargs !== undefined) {
     const kwargs = object(req.kwargs, 'kwargs');
-    if (model === IMAGE || Object.keys(kwargs).some(key => key !== 'generate_audio')) throw new Error('Unsupported kwargs');
+    if (Object.keys(kwargs).some(key => model === IMAGE || key !== 'generate_audio')) throw new Error('Unsupported kwargs');
     if (kwargs.generate_audio !== undefined && typeof kwargs.generate_audio !== 'boolean') throw new Error('generate_audio must be boolean');
     out.kwargs = kwargs;
   }
@@ -80,7 +80,7 @@ function safeResult(body) {
   if (!result || typeof result !== 'object') return {};
   const clean = {};
   for (const name of ['images', 'videos', 'covers', 'audios']) {
-    if (Array.isArray(result[name]) && result[name].length <= MAX_IMAGE_COUNT) clean[name] = result[name].filter(url => typeof url === 'string' && /^https:\/\//.test(url));
+    if (Array.isArray(result[name]) && result[name].length <= MAX_IMAGE_COUNT) clean[name] = result[name].filter(url => typeof url === 'string' && url.length <= 4096 && /^https:\/\/[^\s/@?#]+(?:\/[^\s#]*)?$/.test(url));
   }
   return clean;
 }
@@ -137,4 +137,30 @@ export function extractUsageOnComplete(ctx, _taskResult, body) {
     return {};
   }
   return { seconds: req.duration, resolution: req.resolution };
+}
+
+// Use the same sanitized arrays as the public query response so browser indexes
+// identify exactly the corresponding persisted asset. The host enforces task
+// ownership and validates destinations (including redirects and private IPs).
+export function listArtifacts(task) {
+  if (task.status !== 'SUCCESS') return [];
+  const result = safeResult(task.data);
+  const artifacts = [];
+  const types = { images: 'image', videos: 'video', covers: 'image', audios: 'audio' };
+  for (const kind of Object.keys(types)) {
+    for (let index = 0; index < (result[kind] || []).length && artifacts.length < 64; index++) {
+      artifacts.push({ key: kind + '.' + index, type: types[kind] });
+    }
+  }
+  return artifacts;
+}
+export function buildContentRequest(ctx) {
+  const artifact = listArtifacts({ status: 'SUCCESS', data: ctx.data }).find(item => item.key === ctx.artifactKey);
+  if (!artifact) throw new Error('Artifact is not available');
+  const [kind, index] = artifact.key.split('.');
+  const method = ctx.clientRequest && ctx.clientRequest.method;
+  if (method !== 'GET' && method !== 'HEAD') throw new Error('Unsupported content method');
+  // No credentials or descriptor headers: the host forwards only safe client
+  // range/cache headers itself. LikeAI keys must never reach the media CDN.
+  return { url: safeResult(ctx.data)[kind][Number(index)], method, credentialless: true };
 }
