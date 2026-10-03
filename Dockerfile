@@ -37,6 +37,7 @@ RUN apt-get update \
     && update-ca-certificates
 
 COPY --from=builder2 /build/new-api /
+COPY qisi/supabase-ca-2021.crt /etc/ssl/certs/qisi-supabase-ca.crt
 COPY LICENSE NOTICE THIRD-PARTY-LICENSES.md /licenses/
 EXPOSE 3000
 WORKDIR /data

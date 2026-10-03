@@ -12,7 +12,9 @@
 postgresql://postgres.PROJECT_REF:ENCODED_PASSWORD@POOLER_HOST:5432/postgres?sslmode=require
 ```
 
-主机和用户名以控制台实际值为准；密码中的保留字符必须 URL 编码。`sslmode=require` 强制加密，但不校验服务器身份。需要完整验证时，在 Supabase 下载数据库根证书，通过 Render Secret Files 挂载，然后改用 `sslmode=verify-full&sslrootcert=/etc/secrets/实际证书文件名`；本机初始化使用本机证书路径。不要使用 `sslmode=disable`。[连接与 TLS 文档](https://supabase.com/docs/guides/database/connecting-to-postgres)
+主机和用户名以控制台实际值为准；密码中的保留字符必须 URL 编码。推荐完整证书校验：镜像已包含 Supabase 官方公开 CA，生产连接串使用 `sslmode=verify-full&sslrootcert=/etc/ssl/certs/qisi-supabase-ca.crt`；本机初始化使用 `qisi/supabase-ca-2021.crt` 的绝对路径。`sslmode=require` 只强制加密，不校验服务器身份；不要使用 `sslmode=disable`。[连接与 TLS 文档](https://supabase.com/docs/guides/database/connecting-to-postgres)
+
+CA 来自控制台 Database Settings 的[官方下载地址](https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt)，有效期至 2031-04-26，SHA-256 指纹为 `80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA`。它是公开信任证书，不包含项目密码或私钥；证书轮换时须从控制台核对更新并重新构建。
 
 这里使用长期运行的 Go 服务，不选面向 serverless 的事务池 `6543`。现有 PostgreSQL 驱动已经设置 `PreferSimpleProtocol=true`、关闭 GORM prepared statements，无需改动 ORM。模板将应用连接池限制为最多 10 条、空闲 2 条，后续按真实并发和数据库上限调整。
 

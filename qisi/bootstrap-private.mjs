@@ -93,7 +93,8 @@ async function request(method, route, payload) {
 }
 try {
   let setup;
-  for (let attempt = 0; attempt < 60; attempt++) {
+  // A fresh remote PostgreSQL database can need several minutes for migrations.
+  for (let attempt = 0; attempt < 600; attempt++) {
     if (spawnError || child.exitCode !== null) throw new Error(`Backend failed to start; inspect ${logPath}`);
     try { setup = (await request('GET', '/api/setup')).data; break; } catch { await new Promise(resolve => setTimeout(resolve, 500)); }
   }
