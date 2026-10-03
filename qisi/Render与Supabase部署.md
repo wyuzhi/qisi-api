@@ -2,6 +2,8 @@
 
 `render.yaml` 是可选的免费试运行模板，不代表服务已经部署，也不是稳定商用承诺。账号、余额、任务和日志保存在 Supabase PostgreSQL；Render 只运行 Go 服务。qisiTV 的项目及创作素材仍按画布的本地保存方式使用。
 
+本项目的实际域名部署及验证结果单独记录在[云端验收记录](./云端验收记录.md)，不要把模板中的步骤当作已经执行的结果。
+
 ## 1. 准备独立数据库
 
 在自己的 Supabase 账号准备独立项目，选择与 Render 接近的区域。此应用只使用 PostgreSQL，**先在项目的 Data API 设置中关闭 Enable Data API**，再初始化应用表，避免公开 schema 经自动 REST/GraphQL 接口暴露；不需要接入 Supabase Auth。[官方说明](https://supabase.com/docs/guides/api/securing-your-api)
@@ -46,6 +48,8 @@ CA 来自控制台 Database Settings 的[官方下载地址](https://supabase-do
 其余值已写在模板：构建和运行前缀 `/api-service`，监听 `0.0.0.0:10000`，Secure Cookie、可信来源 `https://cheeser.link`，注册密码至少 15 字符，关闭默认令牌，开启认证限流。Render 会把环境变量提供给 Docker 构建；Dockerfile 只声明路径参数，不要增加读取上述秘密的 `ARG` 或将私有文件复制进镜像。[Docker 文档](https://render.com/docs/docker)
 
 服务健康路径是 `/api-service/api/status`。确认数据库、初始化状态和重启后的持久化都正常，再按 [Vercel 栏目代理示例](./vercel-rewrites.example.json) 合并 `/api-service` 规则，保留现有 qisiTV 路由和前缀。不要缓存登录、余额、令牌或任务接口。`TRUSTED_PROXIES=none` 防止盲信伪造转发头，但可能将多个用户识别成同一代理 IP；正式开放前验证真实代理链，仅填写实际可信 IP/CIDR，再验证限流，不能改成信任任意来源。
+
+代理规则须依次保留根路径、带末尾斜杠的接口和普通路径。仅配置一个通配规则会丢失 `/api/option/` 等接口的末尾斜杠，触发后端跳转并丢失 `/api-service` 前缀；部署后同时检查页面、普通接口和带末尾斜杠的鉴权接口。
 
 通过 `https://cheeser.link/api-service/` 检查注册、登录、退出、零余额、未开通支付提示和 Cookie 的 Secure/HttpOnly/子路径，验证服务重启后账号与余额仍在。首次管理员登录不使用 Render 临时域名绕过来源限制。LikeAI 上游 Key 只录入服务端渠道；不放在模板、Vercel 公共变量或前端源码里。真实收费测试需单独确定预算。
 

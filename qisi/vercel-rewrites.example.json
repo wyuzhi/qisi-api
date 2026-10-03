@@ -4,6 +4,7 @@
   ],
   "rewrites": [
     { "source": "/api-service/", "destination": "https://YOUR_BACKEND_HOST/api-service/" },
+    { "source": "/api-service/:path*/", "destination": "https://YOUR_BACKEND_HOST/api-service/:path*/" },
     { "source": "/api-service/:path*", "destination": "https://YOUR_BACKEND_HOST/api-service/:path*" }
   ]
 }
